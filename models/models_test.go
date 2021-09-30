@@ -34,7 +34,7 @@ var exchanges = []string{"coinex", "kucoin", "binance", "klever"}
 
 var symbols = []string{"USDT/KLV", "BTC/KLV", "USDT/BTC", "ETH/BTC"}
 
-var HigherBid = BookEntry{
+var higherBid = BookEntry{
 	Price:  3000,
 	Amount: 3000,
 }
@@ -73,12 +73,60 @@ func TestAddBid(t *testing.T) {
 	assert.Equal(t, amounts[i], ob.Bids[i].Amount)
 }
 
+func TestSortBids(t *testing.T) {
+	ob, err := NewOrderBook("coinex", "USDT/KLV", []BookEntry{})
+	assert.Nil(t, err, "err should be nil")
+
+	var testCaseScenarios []TestData = CreateTestCaseScenarios(higherBid)
+	for _, testData := range testCaseScenarios {
+		lastBid := testData.bids[len(testData.bids)-1]
+		assert.Equal(t, lastBid, higherBid)
+
+		ob.SortBids(testData.bids)
+		firstBid := testData.bids[0]
+		assert.Equal(t, firstBid, higherBid)
+
+		isSorted := isDescSorted(testData.bids)
+		assert.True(t, isSorted)
+	}
+}
+
+func isDescSorted(bids []BookEntry) (isSorted bool) {
+	isSorted = true
+	for i, bid := range bids {		
+		j := i + 1
+		if j < len(bids) {
+			if bid.Price < bids[j].Price {
+				isSorted = false
+				return
+
+			}
+		}
+	}
+	return
+}
+
+func isAscSorted(asks []BookEntry) (isSorted bool) {
+	isSorted = true
+	for i, bid := range asks {		
+		j := i + 1
+		if j < len(asks) {
+			if bid.Price > asks[j].Price {
+				isSorted = false
+				return
+
+			}
+		}
+	}
+	return
+}
+
 func TestCreateTestCaseScenarios(t *testing.T) {
-	var testCaseScenarios []TestData = CreateTestCaseScenarios(HigherBid)
+	var testCaseScenarios []TestData = CreateTestCaseScenarios(higherBid)
 	assert.Equal(t, len(testCaseScenarios), 16)
 	for _, testData := range testCaseScenarios {
 		lastBid := testData.bids[len(testData.bids)-1]
-		assert.Equal(t, lastBid, HigherBid)
+		assert.Equal(t, lastBid, higherBid)
 	}
 }
 
