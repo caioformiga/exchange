@@ -1,10 +1,19 @@
 package models
 
 import (
+	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+type TestData struct {
+	name     string
+	exchange string
+	symbol   string
+	bids     []BookEntry
+}
 
 var prices = []float64{
 	2947,
@@ -24,6 +33,11 @@ var amounts = []float64{
 var exchanges = []string{"coinex", "kucoin", "binance", "klever"}
 
 var symbols = []string{"USDT/KLV", "BTC/KLV", "USDT/BTC", "ETH/BTC"}
+
+var HigherBid = BookEntry{
+	Price:  3000,
+	Amount: 3000,
+}
 
 func TestNewOrderBook(t *testing.T) {
 	var i = 0
@@ -57,4 +71,55 @@ func TestAddBid(t *testing.T) {
 
 	assert.Equal(t, prices[i], ob.Bids[i].Price)
 	assert.Equal(t, amounts[i], ob.Bids[i].Amount)
+}
+
+func TestCreateTestCaseScenarios(t *testing.T) {
+	var testCaseScenarios []TestData = CreateTestCaseScenarios(HigherBid)
+	assert.Equal(t, len(testCaseScenarios), 16)
+	for _, testData := range testCaseScenarios {
+		lastBid := testData.bids[len(testData.bids)-1]
+		assert.Equal(t, lastBid, HigherBid)
+	}
+}
+
+func CreateTestCaseScenarios(higherBid BookEntry) []TestData {
+	var testCaseScenarios []TestData
+	for _, ex := range exchanges {
+
+		for _, symbol := range symbols {
+
+			testData := CreateTestDataCase(ex, symbol)
+			testData.bids = append(testData.bids, higherBid)
+			testCaseScenarios = append(testCaseScenarios, testData)
+		}
+	}
+	return testCaseScenarios
+}
+
+func CreateTestDataCase(ex string, symbol string) (testData TestData) {
+	ob, err := NewOrderBook(ex, symbol, []BookEntry{})
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var i int = 0
+	var size = len(prices)
+	for i < (size) {
+		j := rand.Intn(size - 1)
+
+		p := prices[j]
+		a := amounts[j]
+
+		ob.AddBid(p, a)
+
+		i = i + 1
+	}
+
+	testData = TestData{
+		name:     "random data",
+		exchange: ob.ExchangeName,
+		symbol:   ob.Symbol,
+		bids:     ob.Bids,
+	}
+	return
 }
