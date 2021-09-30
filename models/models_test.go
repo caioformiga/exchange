@@ -46,14 +46,14 @@ func TestNewOrderBook(t *testing.T) {
 	print(err)
 }
 
-func TestAddNewBookEntry(t *testing.T) {
+func TestAddBid(t *testing.T) {
 	ob, err := NewOrderBook("coinex", "USDT/KLV", []BookEntry{})
 	assert.Nil(t, err, "err should be nil")
 
 	i := 0
 	price := prices[i]
 	amount := amounts[i]
-	ob.AddBookEntry(price, amount)
+	ob.AddBid(price, amount)
 
 	assert.Equal(t, prices[i], ob.Bids[i].Price)
 	assert.Equal(t, amounts[i], ob.Bids[i].Amount)

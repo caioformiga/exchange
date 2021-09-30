@@ -27,10 +27,28 @@ func NewOrderBook(exName string, sym string, b []BookEntry) (ob OrderBook, err e
 	return
 }
 
-func (ob *OrderBook) AddBookEntry(price float64, amount float64) {
-	b := BookEntry{
+func (ob *OrderBook) AddBid(price float64, amount float64) (bid BookEntry, err error) {
+	bid = BookEntry{
 		Price:  price,
 		Amount: amount,
 	}
-	ob.Bids = append(ob.Bids, b)
+
+	if ob.Bids != nil {
+		if price == 0 {
+			err = fmt.Errorf("price can't be zero")
+			return
+		}
+
+		if amount == 0 {
+			err = fmt.Errorf("amout can't be zero")
+			return
+		}
+
+		// Mutex lock
+		ob.Bids = append(ob.Bids, bid)
+		// Mutex unlock
+	}
+
+	err = fmt.Errorf("bids can't be nil")
+	return
 }
